@@ -3,6 +3,18 @@
 
 #include <list>
 
+enum Color
+{
+    BLACK = 30,
+    RED = 31,
+    GREEN = 32,
+    YELLOW = 33,
+    BLUE = 34,
+    PURPLE = 35,
+    CYAN = 36,      //голубой
+    WHITE = 37
+};
+
 class Model;
 class Controller;
 
@@ -22,18 +34,21 @@ class View
 class TView:View
 {
     private:
-        int size_of_screen;
+        std::pair<int, int> size_of_screen;
         int finish = 0;
         void clrscr();
         int gotoxy(std::pair<int, int> coords);
         void setcolor(int color);
         void draw_wall();
         void drawSnake();
+        void drawApples();
         void game_over();
+        void view_scoreboard();
     public:
-        TView(int size)
+        TView(int width, int height)
         {
-            size_of_screen = size;
+            size_of_screen.first = width;
+            size_of_screen.second = height;
         };
         virtual void run();
         virtual void draw();

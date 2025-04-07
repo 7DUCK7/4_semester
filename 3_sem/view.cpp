@@ -10,23 +10,13 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-/*
-Цвета:
-30 — черный
-31 — красный
-32 — зеленый
-33 — желтый
-34 — синий
-35 — пурпурный
-36 — голубой
-37 — белый
-*/
-
 View * View::getView(const char view_type)
 {
+    struct winsize buf = {0, 0, 0, 0};
+    ioctl(0, TIOCGWINSZ, &buf);
     if(view_type == 't')
     {
-        View *v = (View *) new TView(20);
+        View *v = (View *) new TView(buf.ws_col, buf.ws_row);
         return v;
     }
     return NULL;
@@ -52,11 +42,11 @@ void TView::clrscr()
 
 int TView::gotoxy(std::pair<int, int> coords)
 {
-    if(coords.first < 2 || coords.second < 2 || coords.first > size_of_screen - 1 || coords.second > size_of_screen - 1)
+    if(coords.first < 2 || coords.second < 2 || coords.first > size_of_screen.first - 1 || coords.second > size_of_screen.second - 1)
     {
         return -1;
     }
-    std::cout << "\033[" << size_of_screen - coords.second + 1 << ";" << coords.first << "H";
+    std::cout << "\033[" << size_of_screen.second - coords.second + 1 << ";" << coords.first << "H";
     return 0;
 }
 
@@ -69,28 +59,30 @@ void TView::setcolor(int color)
 void TView::draw_wall()
 {
     clrscr();
-    for(int i = 0; i < size_of_screen; i++)
+    setcolor(CYAN);
+    for(int i = 0; i < size_of_screen.first; i++)
     {
         std::cout << "@";
     }
     
-    for(int i = 2; i <= size_of_screen; i++)
+    for(int i = 2; i <= size_of_screen.second; i++)
     {
         std::cout << "\033[" << i << ";" << 1 << "H";
         std::cout << "@";
     }
 
-    for(int i = 1; i < size_of_screen; i++)
+    for(int i = 1; i < size_of_screen.first; i++)
     {
         std::cout << "@";
     }
     
-    for(int i = 2; i < size_of_screen; i++)
+    for(int i = 2; i < size_of_screen.second; i++)
     {
-        std::cout << "\033[" << i << ";" << size_of_screen << "H";
+        std::cout << "\033[" << i << ";" << size_of_screen.first << "H";
         std::cout << "@";
     }
     fflush(stdout);
+    setcolor(WHITE);
     return;
 }
 
@@ -98,13 +90,16 @@ void TView::run()
 {   
     draw();
     my_controller->wait_input(my_model);
-    my_model->update();
+    my_model->update(size_of_screen);
     while(!finish)
     {
-        drawSnake();
-        std::this_thread::sleep_for(std::chrono::nanoseconds(5*100000000 - my_controller->wait_input(my_model)));
-        my_model->update();
+        drawApples();
+        drawSnake(); 
+        std::this_thread::sleep_for(std::chrono::nanoseconds(TIMEOUT - my_controller->wait_input(my_model)));
+        my_model->update(size_of_screen);
     }
+    game_over();
+    view_scoreboard();
     my_controller->disable_custom_controller();
     return;
 }
@@ -113,19 +108,18 @@ void TView::draw()
 {
     clrscr();
     draw_wall();
-    std::pair<int, int> center_of_screen(size_of_screen - 3 / 2, size_of_screen / 2);
+    std::pair<int, int> center_of_screen(size_of_screen.first - 3 / 2, size_of_screen.second / 2);
     gotoxy(center_of_screen);
-    setcolor(31);
+    setcolor(RED);
     drawSnake();
     fflush(stdout);
-    setcolor(37);
+    setcolor(WHITE);
     
     return;
 }
 
 void TView::drawSnake()
 {
-    setcolor(31);
     std::list<Snake>* current_snakes = my_model->get_snakes();
     int is_anyone_alive = 0;
     for(auto it = current_snakes->begin(); it != current_snakes->end(); it++)
@@ -135,19 +129,16 @@ void TView::drawSnake()
     }
 
     if(is_anyone_alive == 0)
-        game_over();
+        finish = 1;
 
     //let's draw snakes' heads
     for(auto it = current_snakes->begin(); it != current_snakes->end(); it++)
     {
+        setcolor(it->get_color());
         std::list<Segment>* list_of_segments_to_set_head = it->get_segments_to_set_head();
         for(auto s = list_of_segments_to_set_head->begin(); s != list_of_segments_to_set_head->end(); s++)
         {
-            if(gotoxy(s->get_coords()) < 0) //если голова змейки окажется вне поля, то "убиваем её", не рисуя головы
-            {
-                it->death();
-                break;
-            }
+            gotoxy(s->get_coords());
             char buf_char = it->get_direction();
             char head_symbol;
             switch (buf_char)
@@ -170,17 +161,20 @@ void TView::drawSnake()
             }
             std::cout << head_symbol;
         }
+        setcolor(WHITE);
     }
 
     //let's draw body parts
     for(auto it = current_snakes->begin(); it != current_snakes->end(); it++)
     {
+        setcolor(it->get_color());
         std::list<Segment>* list_of_segments_to_set_body = it->get_segments_to_set_body();
         for(auto s = list_of_segments_to_set_body->begin(); s != list_of_segments_to_set_body->end(); s++)
         {
             gotoxy(s->get_coords());
             std::cout << '0';
         }
+        setcolor(WHITE);
     }
 
     //let's delete unnecessary segments
@@ -198,22 +192,51 @@ void TView::drawSnake()
     //let's clear to do lists as long as we have drawn everything
     for(auto it = current_snakes->begin(); it != current_snakes->end(); it++)
     {
-        it->clear_to_do_lists();
+        it->clear_to_do_lists('a');
     }
     fflush(stdout);
-    setcolor(37);
+    setcolor(WHITE);
+    return;
+}
+
+void TView::drawApples()
+{
+    std::list<Apple> * current_apples_list_ptr = my_model->get_apples();
+    for(auto ap = current_apples_list_ptr->begin(); ap != current_apples_list_ptr->end(); ap++)
+    {
+        gotoxy(ap->get_coords());
+        std::cout << "*";
+        fflush(stdout);
+    }
     return;
 }
 
 void TView::game_over()
 {
     clrscr();
-    gotoxy(std::pair (size_of_screen / 2, size_of_screen / 2));
+    gotoxy(std::pair (size_of_screen.first / 2, size_of_screen.second / 2));
     setcolor(33);
     std::cout << "GAME OVER";
     fflush(stdout);
     sleep(5);
     finish = 1;
+    clrscr();
+    setcolor(WHITE);
+    return;
+}
+void TView::view_scoreboard()
+{
+    std::list<Snake> * current_snakes = my_model->get_snakes();
+    auto sn = current_snakes->begin();
+    for(int i = 1; i <= my_model->get_number_of_players(); i++)
+    {
+        setcolor(sn->get_color());
+        std::cout << "Player " << i << "\033[" << WHITE << "m" << " has eaten " << sn->get_apple_score() << " apple(-s)\r\n";
+        sn++;
+    }
+    std::cout << "Type q to quit\r\n";
+    while(getchar() != 'q')
+        ;
     clrscr();
     return;
 }

@@ -4,6 +4,7 @@
 #include <iostream>
 int main(int ac, char* av[])
 {
+    srand(time(0));
     View *v;
     if((ac <= 1) || ((v = View::getView((av[1])[0])) == NULL))
     {
@@ -11,8 +12,8 @@ int main(int ac, char* av[])
         return 0;
     }
     Model* m;
-    std::pair<int, int> p(9, 9);
-    m = new Model(1, p);
+    std::list<std::pair<int, int>> p = {{4, 12}, {4, 9}};
+    m = new Model(2, p);
 
     Controller * c;
     c = new Controller();
@@ -20,5 +21,7 @@ int main(int ac, char* av[])
     v->setmodel(m);
     v->setcontroller(c);
     v->run();
+
+    
     return 0;
 }
