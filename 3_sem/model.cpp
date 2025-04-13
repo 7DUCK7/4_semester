@@ -3,24 +3,21 @@
 
 #include <cstdlib>
 
-Model::Model(int num_of_players, std::list<std::pair<int, int>> coords) //Пока что работаем с одной змеёй, а потому num_of_snakes == 1, и координаты передаём через переменную, а не массив и тп
+Model::Model(int num_of_players, int num_of_dumb_bots, int num_of_smart_bots, int num_of_walls)
 {
     number_of_players = num_of_players;
-    int color_ind = RED;
-    auto it = coords.begin();
-    for(int i = 0; i < coords.size(); i++)
-    {
-        std::pair<int, int> buf_pair = *it;
-        snakes.push_back(Snake(buf_pair));
-        snakes.back().set_color(color_ind);
-        color_ind++;
-        it++;
-    }
-    return;
+    number_of_dumb_bots = num_of_dumb_bots;
+    number_of_smart_bots = num_of_smart_bots;
+    number_of_walls = num_of_walls;
 }
 
 void Model::update(std::pair <int, int> screen_size)
 {
+    manage_walls_movement(screen_size);
+    for(auto it = walls.begin(); it != walls.end(); it++)
+    {
+        it->move();
+    }
     for(auto it = snakes.begin(); it != snakes.end(); it++)
     {
         it->move();
@@ -28,6 +25,7 @@ void Model::update(std::pair <int, int> screen_size)
     manage_collision(screen_size);
     manage_apples();
     spawn_apples(screen_size);
+    max_apple_num = (number_of_players + number_of_smart_bots + number_of_dumb_bots) * 2;
     return;
 }
 
@@ -41,6 +39,11 @@ std::list<Snake>* Model::get_snakes()
     return &snakes;
 }
 
+std::list<Wall>* Model::get_walls()
+{
+    return &walls;
+}
+
 int Model::is_apple_being_eaten(Apple * apple)
 {
     std::pair apple_coords = apple->get_coords();
@@ -52,10 +55,31 @@ int Model::is_apple_being_eaten(Apple * apple)
     return 0;
 }
 
+void Model::spawn_players(std::pair<int, int> screen_size)
+{
+    switch (number_of_players)
+    {
+    case 1:
+        snakes.push_back(Snake({4, screen_size.second / 2}, 'w'));
+        snakes.back().set_color(RED);
+        break;
+    case 2:
+        snakes.push_back(Snake({4, screen_size.second / 3}, 'w'));
+        snakes.back().set_color(RED);
+        snakes.push_back(Snake({4, screen_size.second / 3 * 2}, 'i'));
+        snakes.back().set_color(GREEN);
+        break;
+    
+    default:
+        break;
+    }
+    return;
+}
+
 void Model::spawn_apples(std::pair<int, int> screen_size)
 {
     std::pair<int, int> p (0, 0);
-    while(apples.size() < MAX_APPLES_NUM)
+    while(apples.size() < max_apple_num)
     {
         while(1)
         {
@@ -75,9 +99,41 @@ void Model::spawn_apples(std::pair<int, int> screen_size)
     }
 }
 
+void Model::spawn_walls(std::pair<int, int> screen_size)
+{
+    switch (number_of_walls)
+    {
+    case 1:
+        walls.push_back(Wall({screen_size.first / 3, screen_size.second / 2}, screen_size, 'f', 100, 2));
+        break;
+    case 2:
+        walls.push_back(Wall({screen_size.first / 3, screen_size.second / 2}, screen_size, 'f', 100, 2));
+        walls.push_back(Wall({screen_size.first / 3 * 2, screen_size.second / 2}, screen_size, 'f', 100, 1));
+    default:
+        break;
+    }
+    return;
+}
+
+void Model::spawn_bots(std::pair<int, int> screen_size)
+{
+    int i = 1;
+    for(i = 1; i <= number_of_dumb_bots; i++)
+    {
+        snakes.push_back(Snake({4, (screen_size.second - 2) / (number_of_dumb_bots + number_of_smart_bots) * i}, 'd'));
+        snakes.back().set_color(PURPLE);
+    }
+    for(i; i <= number_of_dumb_bots + number_of_smart_bots; i++)
+    {
+        snakes.push_back(Snake({4, (screen_size.second - 2) / (number_of_dumb_bots + number_of_smart_bots) * i}, 's'));
+        snakes.back().set_color(BLUE);
+    }
+}
+
 int Model::check_if_coords_are_free(std::pair<int, int> cords)
 {
     Segment * buf_segment;
+    //не спавнимся на змеях
     for(auto sn = snakes.begin(); sn != snakes.end(); sn++)
     {
         int i = 1;
@@ -88,6 +144,17 @@ int Model::check_if_coords_are_free(std::pair<int, int> cords)
             i++;
         } while (sn->get_segment(i - 1) != sn->get_segment(-1));
     }
+    //не спавнимся на стенах
+    for(auto w = walls.begin(); w != walls.end(); w++)
+    {
+        int i = 1;
+        do
+        {
+            if(cords == w->get_block(i)->get_coords())
+                return 0;
+            i++;
+        } while (w->get_block(i - 1) != w->get_block(-1));   
+    }
     return 1;
 }
 
@@ -95,15 +162,13 @@ void Model::manage_apples()
 {
     for(auto ap = apples.begin(); ap != apples.end(); ap++)
     {
-        //std::cout << "тут ещё не упал" << __LINE__;
+        
         std::pair<int, int> current_apple_coords = ap->get_coords();
         for(auto sn = snakes.begin(); sn != snakes.end(); sn++)
         {
             if(((sn->get_segment(1))->get_coords()) == current_apple_coords)
             {
-                //std::cout << "тут ещё не упал" << __LINE__;
                 sn->tick_eaten_apple();
-                //std::cout << "тут ещё не упал" << __LINE__;
                 ap = apples.erase(ap);
                 break;
             }
@@ -155,14 +220,108 @@ void Model::manage_collision(std::pair<int, int> screen_size)
                 break;
         }
     }      
+    
+    //manage wall collision
+    for(auto sn = snakes.begin(); sn != snakes.end(); sn++)
+    {
+        int is_sn_dead = 0;
+        for(auto w = walls.begin(); w != walls.end(); w++)
+        {
+            int i = 1;
+            Segment* buf_snake_seg;
+            Segment* buf_block;
+            do
+            {
+                buf_snake_seg = sn->get_segment(i);
+                int j = 1;
+                do
+                {
+                    buf_block = w->get_block(j);
+                    if(buf_block->get_coords() == buf_snake_seg->get_coords())
+                    {
+                        buf_snake_seg->do_not_delete_segment();
+                        dead_snakes.push_front(&(*sn));
+                        is_sn_dead = 1;
+                        break;
+                    }
+                    j++;
+                } while (buf_block != w->get_block(-1));
+                if(is_sn_dead)
+                    break;
+                i++;
+            } while (buf_snake_seg != sn->get_segment(-1));
+            if(is_sn_dead)
+                break;
+        }
+    }
+    //manage apple-wall collision
+    for(auto ap = apples.begin(); ap != apples.end(); ap++)
+    {
+        for(auto w = walls.begin(); w != walls.end(); w++)
+        {
+            if(w->get_block(1)->get_coords() == ap->get_coords())
+            ap = apples.erase(ap);
+        }
+    }
+
     for(auto it = dead_snakes.begin(); it != dead_snakes.end(); it++)
         (*it)->death();
     return; 
 }
 
+void Model::manage_walls_movement(std::pair<int, int> screen_size)
+{
+    for(auto w = walls.begin(); w != walls.end(); w++)
+    {
+        std::pair<int, int> current_front_block_coords = w->get_block(1)->get_coords();
+        char current_wall_direction = w->get_direction();
+        switch (current_wall_direction)
+        {
+        case 'f':
+            if(current_front_block_coords.second >= screen_size.second - 2)
+            {
+                w->change_direction('b');
+                w->reverse_wall();
+            }
+            break;
+
+        case 'b':
+            if(current_front_block_coords.second <= 3)
+            {
+                w->change_direction('f');
+                w->reverse_wall();
+            }
+            break;   
+
+        case 'r':
+            if(current_front_block_coords.first >= screen_size.first - 2)
+            {
+                w->change_direction('l');
+                w->reverse_wall();
+            }
+            break;
+
+        case 'l':
+            if(current_front_block_coords.first <= 3)
+            {
+                w->change_direction('r');
+                w->reverse_wall();
+            }
+            break;
+        default:
+            break;
+        }
+    }
+}
+
 int Model::get_number_of_players()
 {
     return number_of_players;
+}
+
+int Model::get_number_of_bots()
+{
+    return number_of_smart_bots + number_of_dumb_bots;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -197,16 +356,21 @@ void Segment::set_coords(std::pair<int, int> coord)
     return;
 }
 
-void Segment::delete_segment()
+void Segment::do_not_delete_segment()
 {
-
+    do_not_delete = 1;
     return;
 }
 
+int Segment::check_do_not_delete_flag()
+{
+    return do_not_delete;
+}
 //----------------------------------------------------------------------------------------------------------------------
 
-Snake::Snake(std::pair<int, int> coord)
+Snake::Snake(std::pair<int, int> coord, char contr_type)
 {
+    controller_type = contr_type;
     Segment buf_segment = Segment(coord);
     add_segment_to_set_head(buf_segment);
     body.push_back(buf_segment);
@@ -228,9 +392,8 @@ Segment* Snake::get_segment(int i)
         return &(*body.begin());
     if(i > body.size())
     {
-        std::cout << "went out of list, empty Segment(-1, -1) returned\n";
-        std::pair<int, int> error_coords(-1, -1);
-        return (new Segment(error_coords));
+        std::cout << "went out of list, empty nullptr returned\n";
+        return nullptr;
     }
     auto it = body.begin();
     std::advance(it, i - 1);
@@ -369,8 +532,10 @@ char Snake::get_direction()
 void Snake::death()
 {
     clear_to_do_lists('h');
-    for(auto it = body.begin(); it != body.end(); it++)
+    for(auto it = ++body.begin(); it != body.end(); it++)
     {
+        if(it->check_do_not_delete_flag())
+            continue;
         add_segment_to_delete(*it);
     }
     body.clear();
@@ -410,4 +575,150 @@ void Snake::set_color(int color)
 int Snake::get_apple_score()
 {
     return apple_score;
+}
+
+char Snake::get_controller_type()
+{
+    return controller_type;
+}
+
+Wall::Wall(std::pair<int, int> coords, std::pair<int, int> size_of_screen, char direct, int movement_range, int set_delay)
+{
+    range_of_movement = movement_range;
+    direction = direct;
+    delay = set_delay;
+    std::pair<int, int> current_coords = coords;
+    std::pair<int, int> changer;
+    int wall_length = 0;
+    switch (direction)
+    {
+        case 'f':   changer = {0, -1};  wall_length = size_of_screen.second / 4;    break;
+        case 'b':   changer = {0, 1};   wall_length = size_of_screen.second / 4;    break;
+        case 'l':   changer = {1, 0};   wall_length = size_of_screen.first / 4;     break;
+        case 'r':   changer = {-1, 0};  wall_length = size_of_screen.first / 4;     break;
+    default:
+        break;
+    }
+
+    for(int i = 0; i < wall_length; i++)
+    {
+        wall_blocks.push_back(Segment(current_coords));
+        add_segment_to_set_block(*(--wall_blocks.end()));
+        current_coords.first += changer.first;
+        current_coords.second += changer.second;
+    }
+    
+}
+
+void Wall::change_direction(char c)
+{
+    direction = c;
+    return;
+}
+
+char Wall::get_direction()
+{
+    return direction;
+}
+void Wall::add_front_block(Segment b)
+{
+    wall_blocks.push_front(b);
+    return;
+}
+
+void Wall::delete_last_block()
+{
+    wall_blocks.pop_back();
+    return;
+}
+
+Segment * Wall::get_block(int n)
+{
+    if(n == 1)  return &(*wall_blocks.begin());
+    if(n == -1) return &(*(--(wall_blocks.end())));
+    if(n > wall_blocks.size())  return nullptr;
+    auto it = wall_blocks.begin();
+    std::advance(it, n - 1);
+    return &(*it);
+}
+
+void Wall::move()
+{
+    if(check_delay() == 0)
+        return;
+    std::pair<int, int> changer;
+    switch (direction)
+    {
+        case 'f':   changer = {0, 1};  break;
+        case 'b':   changer = {0, -1};   break;
+        case 'l':   changer = {-1, 0};   break;
+        case 'r':   changer = {1, 0};  break;
+    default:
+        break;
+    }
+
+    std::pair<int, int> old_cords;
+    for(auto b = wall_blocks.begin(); b != wall_blocks.end(); b++)
+    {
+        if(b == (--wall_blocks.end()))
+            add_block_to_delete(*b);  
+        old_cords = b->get_coords();
+        old_cords.first += changer.first;
+        old_cords.second += changer.second;
+        b->set_coords(old_cords);  
+        if(b == wall_blocks.begin())
+            add_segment_to_set_block(*b); 
+    }
+}
+
+void Wall::add_block_to_delete(Segment b)
+{
+    blocks_to_delete.push_back(b);
+    return;
+}
+
+void Wall::add_segment_to_set_block(Segment b)
+{
+    segments_to_set_block.push_back(b);
+    return;
+}
+
+void Wall::clear_all_to_do_lists()
+{
+    blocks_to_delete.clear();
+    segments_to_set_block.clear();
+    return;
+}
+
+void Wall::reverse_wall()
+{
+    std::reverse(wall_blocks.begin(), wall_blocks.end());
+    return;
+}
+
+std::list<Segment>* Wall::get_blocks_to_delete()
+{
+    return &blocks_to_delete;
+}
+
+std::list<Segment>* Wall::get_segments_to_set_blocks()
+{
+    return &segments_to_set_block;
+}
+
+int Wall::check_delay()
+{
+    if(delay_counter < delay)
+        delay_counter++;
+    else
+    {
+        delay_counter = 0;
+        return 1;
+    }
+    return 0;
+}
+
+int Wall::get_size()
+{
+    return wall_blocks.size();
 }
