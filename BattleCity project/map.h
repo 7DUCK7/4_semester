@@ -23,14 +23,18 @@ e - eagle
 class Map
 {
     private:
-    Sprites * my_sprites;
+    int block_size;
+    int sub_block_size;
     std::vector<std::vector<char>> map_vect;
     public:
     std::vector<std::vector<Block>> map_block_vect;
-    Map(Sprites * sprts);
+    Map();
     bool load_map_from_file(char * file_name);
-    bool map_set_sprites();
+    bool map_set_sprites(Sprites * sprites);
     Block * get_block_ptr(int i, int j);
+    int char_to_enum(char c);
+    void set_block_size(int n);
+    void set_sub_block_size(int n);
 };
 
 #endif

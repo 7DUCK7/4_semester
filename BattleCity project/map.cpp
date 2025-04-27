@@ -2,10 +2,9 @@
 
 //user is responsible for map being properly inputed
 
-Map::Map(Sprites * sprts) : map_vect(MAP_SIZE, std::vector<char> (MAP_SIZE, 0)),  map_block_vect(MAP_SIZE, std::vector<Block> (MAP_SIZE))
+Map::Map() : map_vect(MAP_SIZE, std::vector<char> (MAP_SIZE, 0)),  map_block_vect(MAP_SIZE, std::vector<Block> (MAP_SIZE))
 {
-    std::cout << "I'm alive " << __FILE__ << ' ' << __LINE__ << std::endl;
-    my_sprites = sprts;
+    
 };
 
 bool Map::load_map_from_file(char * file_name)
@@ -61,10 +60,10 @@ bool Map::load_map_from_file(char * file_name)
     return 0;
 }
 
-bool Map::map_set_sprites()
+bool Map::map_set_sprites(Sprites * sprites)
 {
     //checking whether sprites are ready to be used
-    if(!my_sprites->check_texture_readiness())
+    if(!sprites->check_texture_readiness())
     {
         perror("check_texture_readiness(): function failed\n");
         return 1;
@@ -80,9 +79,9 @@ bool Map::map_set_sprites()
             {
                 //map_block_vect[i][j] = Block();
                 map_block_vect[i][j].set_block_type(map_vect[i][j]);
-                map_block_vect[i][j].set_block_sprite_ptr(my_sprites->get_new_sprite_ptr(map_block_vect[i][j].get_block_type()));
+                map_block_vect[i][j].set_block_sprite_ptr(sprites->get_new_sprite_ptr(char_to_enum(map_block_vect[i][j].get_block_type())));
                 sf::Sprite * current_sprite_ptr = map_block_vect[i][j].get_block_sprite_ptr();
-                current_sprite_ptr->setPosition(j * BLOCK_SIZE, i * BLOCK_SIZE);
+                current_sprite_ptr->setPosition(j * block_size, i * block_size);
                 if(map_vect[i][j] == 'g' || map_vect[i][j] == ' ')
                 {
                     map_block_vect[i][j].set_block_health(1);
@@ -107,19 +106,19 @@ bool Map::map_set_sprites()
                 //map_block_vect[i][j] = Block();
                 if(no_more_eagle_sprites)
                 {
-                    map_block_vect[i][j].set_block_sprite_ptr(my_sprites->get_new_sprite_ptr(' '));
+                    map_block_vect[i][j].set_block_sprite_ptr(sprites->get_new_sprite_ptr(char_to_enum(' ')));
                 }
                 else
                 {
                     no_more_eagle_sprites = true;
-                    map_block_vect[i][j].set_block_sprite_ptr(my_sprites->get_new_sprite_ptr('e'));
+                    map_block_vect[i][j].set_block_sprite_ptr(sprites->get_new_sprite_ptr(char_to_enum('e')));
                 }
                 map_block_vect[i][j].set_block_type('e');
                 map_block_vect[i][j].set_block_health(1);
                 map_block_vect[i][j].set_block_density(1);
                 map_block_vect[i][j].block_set_collidable_par(true);
                 sf::Sprite * current_sprite_ptr = map_block_vect[i][j].get_block_sprite_ptr();
-                current_sprite_ptr->setPosition(j * BLOCK_SIZE, i * BLOCK_SIZE);
+                current_sprite_ptr->setPosition(j * block_size, i * block_size);
             }
             else    //'b' - brick
             {
@@ -132,11 +131,11 @@ bool Map::map_set_sprites()
                         Sub_Block * current_sb_ptr = map_block_vect[i][j].get_sub_block_ptr(x, y);
                         current_sb_ptr->set_sub_block_health(1);
                         current_sb_ptr->sub_block_set_collidable_par(true);
-                        if(x == 0 && y == 0) {current_sb_ptr->set_sub_block_sprite_ptr(my_sprites->get_new_sprite_ptr('1'));}
-                        else if (x == 0 && y == 1)  {current_sb_ptr->set_sub_block_sprite_ptr(my_sprites->get_new_sprite_ptr('2'));}
-                        else if (x == 1 && y == 0)  {current_sb_ptr->set_sub_block_sprite_ptr(my_sprites->get_new_sprite_ptr('3'));}
-                        else if (x == 1 && y == 1)  {current_sb_ptr->set_sub_block_sprite_ptr(my_sprites->get_new_sprite_ptr('4'));}
-                        current_sb_ptr->get_sub_block_sprite_ptr()->setPosition(j * BLOCK_SIZE + y * SUB_BLOCK_SIZE, i * BLOCK_SIZE + x * SUB_BLOCK_SIZE);
+                        if(x == 0 && y == 0) {current_sb_ptr->set_sub_block_sprite_ptr(sprites->get_new_sprite_ptr(BRICK_TL));}
+                        else if (x == 0 && y == 1)  {current_sb_ptr->set_sub_block_sprite_ptr(sprites->get_new_sprite_ptr(BRICK_TR));}
+                        else if (x == 1 && y == 0)  {current_sb_ptr->set_sub_block_sprite_ptr(sprites->get_new_sprite_ptr(BRICK_BL));}
+                        else if (x == 1 && y == 1)  {current_sb_ptr->set_sub_block_sprite_ptr(sprites->get_new_sprite_ptr(BRICK_BR));}
+                        current_sb_ptr->get_sub_block_sprite_ptr()->setPosition(j * block_size + y * sub_block_size, i * block_size + x * sub_block_size);
                     }
                 }
             }
@@ -148,4 +147,31 @@ bool Map::map_set_sprites()
 Block * Map::get_block_ptr(int i, int j)
 {
     return &map_block_vect[i][j];
+}
+
+int Map::char_to_enum(char c)
+{
+    switch (c)
+    {
+    case 'g':   return BUSH;
+    case 'w':   return WATER;
+    case 's':   return STEEL;
+    case 'e':   return EAGLE;
+    case ' ':   return AIR;
+    default:
+        break;
+    }
+    return -1;
+}
+
+void Map::set_block_size(int n)
+{
+    block_size = n;
+    return;
+}
+
+void Map::set_sub_block_size(int n)
+{
+    sub_block_size = n;
+    return;
 }

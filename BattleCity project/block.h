@@ -4,8 +4,6 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 
-#define SUB_BLOCK_SIZE 8
-#define BLOCK_SIZE 16
 
 class Sub_Block;
 

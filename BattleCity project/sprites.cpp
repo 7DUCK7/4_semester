@@ -1,4 +1,6 @@
 #include "sprites.h"
+#include <iostream>
+#include "block.h"
 
 Sprites::Sprites()
 {
@@ -30,74 +32,160 @@ bool Sprites::check_texture_readiness()
     return textures_readiness;
 }
 
-sf::Sprite * Sprites::get_new_sprite_ptr(char c)
+sf::Sprite * Sprites::get_new_sprite_ptr(int c)
 {
     sf::Sprite * buf_sprite_ptr;
+    int target_size;
+    sf::Texture buf_texture;
     switch (c)
     {
-    case 'g':   
+    case BUSH:   
     {
         buf_sprite_ptr = new sf::Sprite;
-        buf_sprite_ptr->setTexture(bush_texture);
+        buf_sprite_ptr->setTexture(stretched_bush_texture);
         return buf_sprite_ptr;
     }
-    case 'w':
+    case WATER:
     {
         buf_sprite_ptr = new sf::Sprite;
-        buf_sprite_ptr->setTexture(water_texture);
+        buf_sprite_ptr->setTexture(stretched_water_texture);
         return buf_sprite_ptr;
     }
-    case 's':
+    case STEEL:
     {
         buf_sprite_ptr = new sf::Sprite;
-        buf_sprite_ptr->setTexture(steel_texture);
+        buf_sprite_ptr->setTexture(stretched_steel_texture);
         return buf_sprite_ptr;
     }
-    case '1':   
+    case BRICK_TL:   
     {
         buf_sprite_ptr = new sf::Sprite;
-        buf_sprite_ptr->setTexture(bricks_texture_tl);
+        buf_sprite_ptr->setTexture(stretched_bricks_texture_tl);
         return buf_sprite_ptr;
     }
-    case '2':   
+    case BRICK_TR:   
     {
         buf_sprite_ptr = new sf::Sprite;
-        buf_sprite_ptr->setTexture(bricks_texture_tr);
+        buf_sprite_ptr->setTexture(stretched_bricks_texture_tr);
         return buf_sprite_ptr;
     }
-    case '3':   
+    case BRICK_BL:   
     {
         buf_sprite_ptr = new sf::Sprite;
-        buf_sprite_ptr->setTexture(bricks_texture_bl);
+        buf_sprite_ptr->setTexture(stretched_bricks_texture_bl);
         return buf_sprite_ptr;
     }
-    case '4':   
+    case BRICK_BR:   
     {
         buf_sprite_ptr = new sf::Sprite;
-        buf_sprite_ptr->setTexture(bricks_texture_br);
+        buf_sprite_ptr->setTexture(stretched_bricks_texture_br);
         return buf_sprite_ptr;
     }
-    case 'e':
+    case EAGLE:
     {
         buf_sprite_ptr = new sf::Sprite;
-        buf_sprite_ptr->setTexture(eagle_texture);
+        buf_sprite_ptr->setTexture(stretched_eagle_texture);
         return buf_sprite_ptr;
     }
-    case ' ':
+    case AIR:
     {
         buf_sprite_ptr = new sf::Sprite;
-        buf_sprite_ptr->setTextureRect(sf::IntRect(0, 0, 16, 16));;
+        buf_sprite_ptr->setTextureRect(sf::IntRect(0, 0, block_size, block_size));
         return buf_sprite_ptr;
     }
-    case '5':   // small air to replace destroyed brick sub_blocks
+    case SMALL_AIR:   // small air to replace destroyed brick sub_blocks
     {
         buf_sprite_ptr = new sf::Sprite;
-        buf_sprite_ptr->setTextureRect(sf::IntRect(0, 0, 8, 8));;
+        buf_sprite_ptr->setTextureRect(sf::IntRect(0, 0, sub_block_size, sub_block_size));
+        return buf_sprite_ptr;
+    }
+    case TANK_YELLOW:
+    {
+        buf_sprite_ptr = new sf::Sprite;
+        buf_sprite_ptr->setTexture(stretched_tank_texture_yellow);
+        return buf_sprite_ptr;
+    }
+    case TANK_GREEN:
+    {
+        buf_sprite_ptr = new sf::Sprite;
+        buf_sprite_ptr->setTexture(stretched_tank_texture_green);
+        return buf_sprite_ptr;
+    }
+    case TANK_ENEMY_1:
+    {
+        buf_sprite_ptr = new sf::Sprite;
+        buf_sprite_ptr->setTexture(stretched_tank_texture_enemy_1);
+        return buf_sprite_ptr;
+    }
+    case TANK_ENEMY_2:
+    {
+        buf_sprite_ptr = new sf::Sprite;
+        buf_sprite_ptr->setTexture(stretched_tank_texture_enemy_2);
+        return buf_sprite_ptr;
+    }
+    case TANK_ENEMY_3:
+    {
+        buf_sprite_ptr = new sf::Sprite;
+        buf_sprite_ptr->setTexture(stretched_tank_texture_enemy_3);
+        return buf_sprite_ptr;
+    }
+    case TANK_ENEMY_4:
+    {
+        buf_sprite_ptr = new sf::Sprite;
+        buf_sprite_ptr->setTexture(stretched_tank_texture_enemy_4);
         return buf_sprite_ptr;
     }
     default:
+    {
         break;
     }
+    }
+
     perror("get_sprite_ptr(): function failed");
     return nullptr;
+}
+
+void Sprites::set_block_size(int n)
+{
+    block_size = n;
+    return;
+}
+
+void Sprites::set_sub_block_size(int n)
+{
+    sub_block_size = n;
+    return;
+}
+
+void Sprites::stretch_all_textures()
+{
+    stretched_bush_texture = stretch_texture(block_size, bush_texture);
+    stretched_water_texture = stretch_texture(block_size, water_texture);
+    stretched_steel_texture = stretch_texture(block_size, steel_texture);
+    stretched_bricks_texture_tl = stretch_texture(sub_block_size, bricks_texture_tl);
+    stretched_bricks_texture_tr = stretch_texture(sub_block_size, bricks_texture_tr);
+    stretched_bricks_texture_bl = stretch_texture(sub_block_size, bricks_texture_bl);
+    stretched_bricks_texture_br = stretch_texture(sub_block_size, bricks_texture_br);
+    stretched_eagle_texture = stretch_texture(block_size * 2, eagle_texture);
+    stretched_tank_texture_green = stretch_texture((block_size * 2 - 7), tank_texture_green);
+    stretched_tank_texture_yellow = stretch_texture((block_size * 2 - 7), tank_texture_yellow);
+    stretched_tank_texture_enemy_1 = stretch_texture((block_size * 2 - 7), tank_texture_enemy_1);
+    stretched_tank_texture_enemy_2 = stretch_texture((block_size * 2 - 7), tank_texture_enemy_2);
+    stretched_tank_texture_enemy_3 = stretch_texture((block_size * 2 - 7), tank_texture_enemy_3);
+    stretched_tank_texture_enemy_4 = stretch_texture((block_size * 2 - 7), tank_texture_enemy_4);
+}
+
+sf::Texture Sprites::stretch_texture(int target_size, sf::Texture buf_texture)
+{
+    sf::RenderTexture renderTexture;
+    sf::Sprite tempSprite;
+    renderTexture.create(target_size, target_size);
+    tempSprite.setTexture(buf_texture);
+    tempSprite.setScale(target_size / tempSprite.getLocalBounds().width, target_size / tempSprite.getLocalBounds().height);
+
+    renderTexture.clear(sf::Color::Transparent);
+    renderTexture.draw(tempSprite);
+    renderTexture.display();
+
+    return renderTexture.getTexture();
 }
