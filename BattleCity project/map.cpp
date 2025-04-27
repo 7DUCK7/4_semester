@@ -124,6 +124,7 @@ bool Map::map_set_sprites(Sprites * sprites)
             {
                 //map_block_vect[i][j] = Block();
                 map_block_vect[i][j].set_block_type('b');
+                map_block_vect[i][j].block_set_collidable_par(true);
                 for(int x = 0; x < 2; x++)
                 {
                     for(int y = 0; y < 2; y++)

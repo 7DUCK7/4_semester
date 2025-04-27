@@ -7,7 +7,7 @@
 #include "tank.h"
 #include "block.h"
 #include "map.h"
-
+#define EPSILON 0.05f
 enum directions
 {
     RIGHT,
@@ -57,10 +57,11 @@ class Model
     int get_base_tank_speed();
     int get_base_bullet_speed();
     std::vector<Tank *> get_tanks_vect();
-    void update();
+    void update(Map * my_map);
     int get_movement_right(int n);
     void set_movement_right(int n, int value);
     std::array<sf::Vector2f, 4> get_sprite_corners(sf::Sprite * current_sprite);
+    void get_nearby_collideble_map_sprites(std::vector<sf::Sprite *> * nearby_collidble_sprites_ptr_vect, sf::Sprite * tank_sprite, Map * my_map);
 };
 
 

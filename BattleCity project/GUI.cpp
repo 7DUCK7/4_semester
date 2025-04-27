@@ -62,6 +62,7 @@ void GUI::run()
 
         my_window.clear();
         //printing map
+        /*
         for(int x = 0; x < MAP_SIZE; x++)
         {
             for(int y = 0; y < MAP_SIZE; y++)
@@ -70,6 +71,7 @@ void GUI::run()
                 if(current_block_ptr->get_block_type() != 'b')
                 {
                     my_window.draw(*current_block_ptr->get_block_sprite_ptr());
+                    drawDebugBounds(my_window, *current_block_ptr->get_block_sprite_ptr());
                 }
                 else
                 {
@@ -79,16 +81,31 @@ void GUI::run()
                         {
                             Sub_Block * current_sub_block_ptr = current_block_ptr->get_sub_block_ptr(i, j);
                             my_window.draw(*current_sub_block_ptr->get_sub_block_sprite_ptr());
+                            drawDebugBounds(my_window, *current_sub_block_ptr->get_sub_block_sprite_ptr());
                         }
                     }
                 }
             }
+                
+
+            
+
         }
-        //get heyboard input
+        */
+        //printing only nearest blocks
+        std::vector<sf::Sprite *> nearby_collidble_sprites_ptr_vect;
+        my_model->get_nearby_collideble_map_sprites(&nearby_collidble_sprites_ptr_vect, (*my_model->get_tanks_vect_ptr())[0]->get_tank_sprite_ptr(), my_map);
+        for(auto m = nearby_collidble_sprites_ptr_vect.begin(); m != nearby_collidble_sprites_ptr_vect.end(); m++)
+        {
+            my_window.draw(*(*m));
+            drawDebugBounds(my_window, *(*m));
+        }
+        //get keyboard input
         first_player_controller->process_input();
         //update model according to input
-        my_model->update();
+        my_model->update(my_map);
         my_window.draw(*(*my_model->get_tanks_vect_ptr())[0]->get_tank_sprite_ptr());
+        drawDebugBounds(my_window, *(*my_model->get_tanks_vect_ptr())[0]->get_tank_sprite_ptr());
         my_window.display();
     }
 }
@@ -97,4 +114,15 @@ void GUI::set_first_player_controller(Controller * c)
 {
     first_player_controller = c;
     return;
+}
+
+void GUI::drawDebugBounds(sf::RenderWindow& window, const sf::Sprite& sprite) 
+{
+    sf::FloatRect bounds = sprite.getGlobalBounds();
+    sf::RectangleShape rect({bounds.width, bounds.height});
+    rect.setPosition(bounds.left, bounds.top);
+    rect.setFillColor(sf::Color::Transparent);
+    rect.setOutlineColor(sf::Color::Red);
+    rect.setOutlineThickness(1);
+    window.draw(rect);
 }

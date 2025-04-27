@@ -25,9 +25,9 @@ class Map
     private:
     int block_size;
     int sub_block_size;
+    std::vector<std::vector<Block>> map_block_vect;
     std::vector<std::vector<char>> map_vect;
     public:
-    std::vector<std::vector<Block>> map_block_vect;
     Map();
     bool load_map_from_file(char * file_name);
     bool map_set_sprites(Sprites * sprites);

@@ -34,6 +34,7 @@ class GUI
     ~GUI()  {};
     void run();
     void set_first_player_controller(Controller * c);
+    void drawDebugBounds(sf::RenderWindow& window, const sf::Sprite& sprite);
 };
 
 
