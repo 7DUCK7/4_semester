@@ -12,6 +12,7 @@ class Tank
     int tank_fire_rate;
     int tank_damage;
     int tank_bullet_speed;
+    int direction;
     sf::Sprite * tank_sprite_ptr;
 
     public:
@@ -28,6 +29,10 @@ class Tank
     void set_tank_bullet_speed(int n);
     sf::Sprite * get_tank_sprite_ptr();
     void set_tank_sprite_ptr(sf::Sprite * sp);
+    int get_direction();
+    void set_direction(int n);
+    void move(int base_speed);
+    void rotate();
 };
 
 

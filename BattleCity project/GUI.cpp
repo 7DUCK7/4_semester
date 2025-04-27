@@ -20,12 +20,12 @@ void GUI::get_window_size_and_manage_sprites_sizes()
     my_map->set_sub_block_size(screen_height / (MAP_SIZE * 2));  
     my_model->set_block_size(screen_height / MAP_SIZE);
     my_model->set_sub_block_size(screen_height / (MAP_SIZE * 2));  
-    my_model->set_tank_size(my_model->get_block_size() * 2 - 7);
+    my_model->set_tank_size(my_model->get_block_size() * 2 - 6);
     return;
 }
 void GUI::set_tanks_speeds()
 {
-    first_player_controller->set_base_tank_speed(60 * my_model->get_tank_size() / 16 / FRAME_RATE);
+    my_model->set_base_tank_speed(60 * my_model->get_tank_size() / 16 / FRAME_RATE);
 }
 
 GUI::GUI(Map * map, Model * model, Sprites * sprites)
@@ -48,8 +48,8 @@ void GUI::run()
     my_map->map_set_sprites(my_sprites);
     first_player_controller->set_operating_tank_ptr((*current_tank_vect_ptr)[0]);
     (*current_tank_vect_ptr)[0]->set_tank_sprite_ptr(my_sprites->get_new_sprite_ptr(TANK_GREEN));
-    (*current_tank_vect_ptr)[0]->get_tank_sprite_ptr()->setPosition(my_model->get_tank_size() / 2 + 1, my_model->get_tank_size() / 2 + 1);
-    (*current_tank_vect_ptr)[0]->get_tank_sprite_ptr()->setOrigin(my_model->get_tank_size() / 2 + 1, my_model->get_tank_size() / 2 + 1);
+    (*current_tank_vect_ptr)[0]->get_tank_sprite_ptr()->setPosition((float)(my_model->get_tank_size() / 2), ((float)my_model->get_tank_size() / 2));
+    (*current_tank_vect_ptr)[0]->get_tank_sprite_ptr()->setOrigin((float)(my_model->get_tank_size() / 2), ((float)my_model->get_tank_size() / 2));
     //render cycle
     while(my_window.isOpen())
     {
@@ -61,7 +61,7 @@ void GUI::run()
         }
 
         my_window.clear();
-
+        //printing map
         for(int x = 0; x < MAP_SIZE; x++)
         {
             for(int y = 0; y < MAP_SIZE; y++)
@@ -84,8 +84,10 @@ void GUI::run()
                 }
             }
         }
-
+        //get heyboard input
         first_player_controller->process_input();
+        //update model according to input
+        my_model->update();
         my_window.draw(*(*my_model->get_tanks_vect_ptr())[0]->get_tank_sprite_ptr());
         my_window.display();
     }

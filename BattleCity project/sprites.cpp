@@ -167,12 +167,12 @@ void Sprites::stretch_all_textures()
     stretched_bricks_texture_bl = stretch_texture(sub_block_size, bricks_texture_bl);
     stretched_bricks_texture_br = stretch_texture(sub_block_size, bricks_texture_br);
     stretched_eagle_texture = stretch_texture(block_size * 2, eagle_texture);
-    stretched_tank_texture_green = stretch_texture((block_size * 2 - 7), tank_texture_green);
-    stretched_tank_texture_yellow = stretch_texture((block_size * 2 - 7), tank_texture_yellow);
-    stretched_tank_texture_enemy_1 = stretch_texture((block_size * 2 - 7), tank_texture_enemy_1);
-    stretched_tank_texture_enemy_2 = stretch_texture((block_size * 2 - 7), tank_texture_enemy_2);
-    stretched_tank_texture_enemy_3 = stretch_texture((block_size * 2 - 7), tank_texture_enemy_3);
-    stretched_tank_texture_enemy_4 = stretch_texture((block_size * 2 - 7), tank_texture_enemy_4);
+    stretched_tank_texture_green = stretch_texture((block_size * 2 - 6), tank_texture_green);
+    stretched_tank_texture_yellow = stretch_texture((block_size * 2 - 6), tank_texture_yellow);
+    stretched_tank_texture_enemy_1 = stretch_texture((block_size * 2 - 6), tank_texture_enemy_1);
+    stretched_tank_texture_enemy_2 = stretch_texture((block_size * 2 - 6), tank_texture_enemy_2);
+    stretched_tank_texture_enemy_3 = stretch_texture((block_size * 2 - 6), tank_texture_enemy_3);
+    stretched_tank_texture_enemy_4 = stretch_texture((block_size * 2 - 6), tank_texture_enemy_4);
 }
 
 sf::Texture Sprites::stretch_texture(int target_size, sf::Texture buf_texture)
