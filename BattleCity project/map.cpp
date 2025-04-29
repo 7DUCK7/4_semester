@@ -125,13 +125,16 @@ bool Map::map_set_sprites(Sprites * sprites)
                 //map_block_vect[i][j] = Block();
                 map_block_vect[i][j].set_block_type('b');
                 map_block_vect[i][j].block_set_collidable_par(true);
+                map_block_vect[i][j].set_block_health(1);
+                map_block_vect[i][j].set_block_density(1);
                 for(int x = 0; x < 2; x++)
                 {
                     for(int y = 0; y < 2; y++)
                     {
                         Sub_Block * current_sb_ptr = map_block_vect[i][j].get_sub_block_ptr(x, y);
                         current_sb_ptr->set_sub_block_health(1);
-                        current_sb_ptr->sub_block_set_collidable_par(true);
+                        current_sb_ptr->sub_block_set_collideble_par(true);
+                        current_sb_ptr->sub_block_set_density(1);
                         if(x == 0 && y == 0) {current_sb_ptr->set_sub_block_sprite_ptr(sprites->get_new_sprite_ptr(BRICK_TL));}
                         else if (x == 0 && y == 1)  {current_sb_ptr->set_sub_block_sprite_ptr(sprites->get_new_sprite_ptr(BRICK_TR));}
                         else if (x == 1 && y == 0)  {current_sb_ptr->set_sub_block_sprite_ptr(sprites->get_new_sprite_ptr(BRICK_BL));}

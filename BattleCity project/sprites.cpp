@@ -15,12 +15,13 @@ Sprites::Sprites()
         !steel_texture.loadFromFile("textures/map/steel_texture.png")                   ||
         !bush_texture.loadFromFile("textures/map/bush_texture.png")                     ||
         !eagle_texture.loadFromFile("textures/map/eagle_texture.png")                   ||
-        !tank_texture_green.loadFromFile("textures/tank/tank_texture_green.png")        ||
-        !tank_texture_yellow.loadFromFile("textures/tank/tank_texture_yellow.png")      ||
+        !tank_texture_green.loadFromFile("textures/tank/tank_texture_green_new.png")        ||
+        !tank_texture_yellow.loadFromFile("textures/tank/tank_texture_yellow_new.png")      ||
         !tank_texture_enemy_1.loadFromFile("textures/tank/tank_texture_enemy_1.png")    ||
         !tank_texture_enemy_2.loadFromFile("textures/tank/tank_texture_enemy_2.png")    ||
         !tank_texture_enemy_3.loadFromFile("textures/tank/tank_texture_enemy_3.png")    ||
-        !tank_texture_enemy_4.loadFromFile("textures/tank/tank_texture_enemy_4.png")    
+        !tank_texture_enemy_4.loadFromFile("textures/tank/tank_texture_enemy_4.png")    ||
+        !bullet_texture.loadFromFile("textures/tank/bullet_texture.png")
     )   {return;}
     textures_readiness = 1;
     
@@ -135,6 +136,12 @@ sf::Sprite * Sprites::get_new_sprite_ptr(int c)
         buf_sprite_ptr->setTexture(stretched_tank_texture_enemy_4);
         return buf_sprite_ptr;
     }
+    case BULLET:
+    {
+        buf_sprite_ptr = new sf::Sprite;
+        buf_sprite_ptr->setTexture(stretched_bullet_texture);
+        return buf_sprite_ptr;
+    }
     default:
     {
         break;
@@ -167,12 +174,13 @@ void Sprites::stretch_all_textures()
     stretched_bricks_texture_bl = stretch_texture(sub_block_size, bricks_texture_bl);
     stretched_bricks_texture_br = stretch_texture(sub_block_size, bricks_texture_br);
     stretched_eagle_texture = stretch_texture(block_size * 2, eagle_texture);
-    stretched_tank_texture_green = stretch_texture((block_size * 2 - 6), tank_texture_green);
-    stretched_tank_texture_yellow = stretch_texture((block_size * 2 - 6), tank_texture_yellow);
-    stretched_tank_texture_enemy_1 = stretch_texture((block_size * 2 - 6), tank_texture_enemy_1);
-    stretched_tank_texture_enemy_2 = stretch_texture((block_size * 2 - 6), tank_texture_enemy_2);
-    stretched_tank_texture_enemy_3 = stretch_texture((block_size * 2 - 6), tank_texture_enemy_3);
-    stretched_tank_texture_enemy_4 = stretch_texture((block_size * 2 - 6), tank_texture_enemy_4);
+    stretched_tank_texture_green = stretch_texture(tank_size, tank_texture_green);
+    stretched_tank_texture_yellow = stretch_texture(tank_size, tank_texture_yellow);
+    stretched_tank_texture_enemy_1 = stretch_texture(tank_size, tank_texture_enemy_1);
+    stretched_tank_texture_enemy_2 = stretch_texture(tank_size, tank_texture_enemy_2);
+    stretched_tank_texture_enemy_3 = stretch_texture(tank_size, tank_texture_enemy_3);
+    stretched_tank_texture_enemy_4 = stretch_texture(tank_size, tank_texture_enemy_4);
+    stretched_bullet_texture = stretch_texture(bullet_size, bullet_texture);
 }
 
 sf::Texture Sprites::stretch_texture(int target_size, sf::Texture buf_texture)
@@ -188,4 +196,14 @@ sf::Texture Sprites::stretch_texture(int target_size, sf::Texture buf_texture)
     renderTexture.display();
 
     return renderTexture.getTexture();
+}
+void Sprites::set_tank_size(int n)
+{
+    tank_size = n;
+    return;
+}
+void Sprites::set_bullet_size(int n)
+{
+    bullet_size = n;
+    return;
 }

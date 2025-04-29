@@ -28,7 +28,8 @@ class GUI
     int finish = 0;
     void prepare_tanks();
     void get_window_size_and_manage_sprites_sizes();
-    void set_tanks_speeds();
+    void set_tanks_and_bullets_speeds();
+    void draw_bullets(sf::RenderWindow* my_window);
     public:
     GUI(Map * map, Model * model, Sprites * sprites);
     ~GUI()  {};

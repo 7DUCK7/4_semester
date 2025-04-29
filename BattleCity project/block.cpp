@@ -103,15 +103,31 @@ bool Sub_Block::is_sub_block_collidable()
     return sub_block_collidable;
 }
 
-void Sub_Block::sub_block_set_collidable_par(bool n)
+void Sub_Block::sub_block_set_collideble_par(bool n)
 {
     sub_block_collidable = n;    
     return;
+}
+
+bool Sub_Block::sub_block_get_collideble_par()
+{
+    return sub_block_collidable;
 }
 
 void Sub_Block::sub_block_delete_sprite()
 {
     delete sub_block_sprite_ptr;
     sub_block_sprite_ptr = nullptr;
+    return;
+}
+
+int Sub_Block::sub_block_get_density()
+{
+    return density;
+}
+
+void Sub_Block::sub_block_set_density(int n)
+{
+    density = n;
     return;
 }

@@ -22,7 +22,8 @@ enum texture_codes
     TANK_ENEMY_1,
     TANK_ENEMY_2,
     TANK_ENEMY_3,
-    TANK_ENEMY_4
+    TANK_ENEMY_4,
+    BULLET
 };
 
 class Sprites
@@ -31,6 +32,8 @@ class Sprites
     //map textures
     int block_size;
     int sub_block_size;
+    int tank_size;
+    int bullet_size;
 
     sf::Texture bricks_texture_tl;
     sf::Texture bricks_texture_tr;
@@ -40,7 +43,7 @@ class Sprites
     sf::Texture steel_texture;
     sf::Texture bush_texture;
     sf::Texture eagle_texture;
-
+    
     //stretched map textures
 
     sf::Texture stretched_bricks_texture_tl;
@@ -59,6 +62,7 @@ class Sprites
     sf::Texture tank_texture_enemy_2;
     sf::Texture tank_texture_enemy_3;
     sf::Texture tank_texture_enemy_4;
+    sf::Texture bullet_texture;
 
     //stretched tank textures
     sf::Texture stretched_tank_texture_green;
@@ -67,6 +71,7 @@ class Sprites
     sf::Texture stretched_tank_texture_enemy_2;
     sf::Texture stretched_tank_texture_enemy_3;
     sf::Texture stretched_tank_texture_enemy_4;
+    sf::Texture stretched_bullet_texture;
 
     bool textures_readiness = 0;
     public:
@@ -77,6 +82,8 @@ class Sprites
     void set_sub_block_size(int n);
     void stretch_all_textures();
     sf::Texture stretch_texture(int target_size, sf::Texture buf_texture);
+    void set_tank_size(int n);
+    void set_bullet_size(int n);
 };
 
 

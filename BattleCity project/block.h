@@ -38,6 +38,7 @@ class Sub_Block
     private:
     int sub_block_health;
     bool sub_block_collidable;
+    int density;
     sf::Sprite * sub_block_sprite_ptr;
 
     public:
@@ -47,8 +48,11 @@ class Sub_Block
     sf::Sprite * get_sub_block_sprite_ptr();
     void set_sub_block_sprite_ptr(sf::Sprite * sprite_ptr);
     bool is_sub_block_collidable();
-    void sub_block_set_collidable_par(bool n);
+    void sub_block_set_collideble_par(bool n);
+    bool sub_block_get_collideble_par();
     void sub_block_delete_sprite();
+    int sub_block_get_density();
+    void sub_block_set_density(int n);
 };
 
 

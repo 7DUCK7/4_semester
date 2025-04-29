@@ -33,24 +33,36 @@ First_Player_Controller::First_Player_Controller()
 void First_Player_Controller::process_input()
 { 
     //managing movement and movement
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+    bool is_space_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
+    bool is_w_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::W);
+    bool is_s_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::S);
+    bool is_d_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::D);
+    bool is_a_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::A);
+    if(is_space_pressed)
+    {
+        operating_tank_ptr->set_need_to_shoot_par(true);
+    }
+    if(!is_w_pressed && !is_s_pressed && !is_d_pressed && !is_a_pressed)
+        operating_tank_ptr->set_need_to_move_par(false);
+    if(is_w_pressed)
     {
         operating_tank_ptr->set_direction(UP);
+        operating_tank_ptr->set_need_to_move_par(true);
     }
-    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+    else if(is_s_pressed)
     {
         operating_tank_ptr->set_direction(DOWN);
+        operating_tank_ptr->set_need_to_move_par(true);
     }
-    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+    else if(is_d_pressed)
     {
         operating_tank_ptr->set_direction(RIGHT);
+        operating_tank_ptr->set_need_to_move_par(true);
     }
-    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+    else if(is_a_pressed)
     {
         operating_tank_ptr->set_direction(LEFT);
+        operating_tank_ptr->set_need_to_move_par(true);
     }
-    else 
-    {
-        operating_tank_ptr->set_direction(NONE);
-    }
+
 }
