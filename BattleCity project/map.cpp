@@ -10,10 +10,11 @@ Map::Map() : map_vect(MAP_SIZE, std::vector<char> (MAP_SIZE, 0)),  map_block_vec
 bool Map::load_map_from_file(char * file_name)
 {
     std::string allowed_symbols = "gwsbe ";
+    std::string numbers = "1234";
     FILE* input_fd = fopen(file_name, "r");
     if(input_fd == nullptr)
     {
-        perror("load_map_from_file(): failed to open input file\n");
+        std::cerr << __FILE__ << ": " << __func__ << "() line " <<  __LINE__  <<  ": failed to open input file" << std::endl;
         return 1;
     }
     int buf_int;
@@ -27,7 +28,7 @@ bool Map::load_map_from_file(char * file_name)
             {
                 if(buf_int == EOF)
                 {   
-                    perror("load_from_file(): file didn't contain enough key symbols to be a map file\n");
+                    std::cerr << __FILE__ << ": " << __func__ << "() line " <<  __LINE__  <<  ": file didn't contain enough key symbols to be a map file" << std::endl;
                     return 1;
                 }
             }
@@ -41,9 +42,16 @@ bool Map::load_map_from_file(char * file_name)
         {
             if(allowed_symbols.find(map_vect[i][j]) == std::string::npos)
             {
+                std::cerr << __FILE__ << ": " << __func__ << "() line " <<  __LINE__  <<  ": found unwanted symbol" << std::endl;
                 return 1;   //return 1 if we have found unwanted symbol
             }
         }
+    }
+    //считываем строку с информацией о противниках на уровне
+    while((buf_int = fgetc(input_fd)) != EOF)
+    {
+        if(numbers.find(buf_int) != std::string::npos)
+            enemies_str.push_back(buf_int);
     }
 
     /*  Вывод текстовой карты
@@ -57,6 +65,7 @@ bool Map::load_map_from_file(char * file_name)
     }
 
     */
+    fclose(input_fd);
     return 0;
 }
 
@@ -65,7 +74,7 @@ bool Map::map_set_sprites(Sprites * sprites)
     //checking whether sprites are ready to be used
     if(!sprites->check_texture_readiness())
     {
-        perror("check_texture_readiness(): function failed\n");
+        std::cerr << __FILE__ << ": " << __func__ << "() line " <<  __LINE__  <<  ": some sprites are not ready" << std::endl;
         return 1;
     }
 
@@ -145,6 +154,7 @@ bool Map::map_set_sprites(Sprites * sprites)
             }
         }
     }
+
     return 0;
 }
 
@@ -178,4 +188,9 @@ void Map::set_sub_block_size(int n)
 {
     sub_block_size = n;
     return;
+}
+
+std::string Map::get_enemies_string()
+{
+    return enemies_str;
 }

@@ -25,6 +25,7 @@ class Map
     private:
     int block_size;
     int sub_block_size;
+    std::string enemies_str;
     std::vector<std::vector<Block>> map_block_vect;
     std::vector<std::vector<char>> map_vect;
     public:
@@ -35,6 +36,7 @@ class Map
     int char_to_enum(char c);
     void set_block_size(int n);
     void set_sub_block_size(int n);
+    std::string get_enemies_string();
 };
 
 #endif

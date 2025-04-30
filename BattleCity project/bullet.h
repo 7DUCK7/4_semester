@@ -10,6 +10,7 @@ class Bullet
     int damage;
     int direction;
     int bullet_power;
+    int owner_tank_type;
     sf::Sprite * sprite_ptr;
 
     public:
@@ -33,6 +34,8 @@ class Bullet
     sf::Sprite * get_bullet_sprite_ptr();
     void set_bullet_sprite_ptr(sf::Sprite * sp);
     void move(int base_speed);
+    void set_bullet_owner_tank_type(int n);
+    int get_bullet_owner_tank_type();
 };
 
 

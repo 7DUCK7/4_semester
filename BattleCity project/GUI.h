@@ -23,7 +23,7 @@ class GUI
     Sprites * my_sprites;
     Controller * first_player_controller;
     Controller * second_player_controller;
-    Controller * bot_controller;
+    Controller * enemy_1_bot_controller;
     std::pair <int, int> window_size;
     int finish = 0;
     void prepare_tanks();
@@ -35,7 +35,13 @@ class GUI
     ~GUI()  {};
     void run();
     void set_first_player_controller(Controller * c);
+    void set_second_player_controller(Controller * c);
+    void set_enemy_1_bot_controller(Controller * c);
     void drawDebugBounds(sf::RenderWindow& window, const sf::Sprite& sprite);
+    void prepare_players_tanks();
+    void all_controllers_process_input();
+    void draw_all_tanks(sf::RenderWindow * my_window);
+    void prepare_bot_tanks();
 };
 
 

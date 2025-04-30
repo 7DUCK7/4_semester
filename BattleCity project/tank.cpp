@@ -2,9 +2,52 @@
 #include "model.h"
 #include "bullet.h"
 
-Tank::Tank()
+Tank::Tank(int type)
 {
+    tank_type = type;
+    /*
 
+    movement_rights.push_back(0);
+    */
+
+    switch (type)
+    {
+    case TANK_GREEN:
+        tank_health = 1;
+        tank_speed = 1.f;
+        tank_bullet_speed = 1.f;
+        tank_reload_time = 1.f;
+        tank_bullet_power = 1;
+        tank_damage = 1;
+        is_alive = 1;
+        direction = UP;
+        break;
+
+    case TANK_YELLOW:
+        tank_health = 1;
+        tank_speed = 1.f;
+        tank_bullet_speed = 1.f;
+        tank_reload_time = 1.f;
+        tank_bullet_power = 1;
+        tank_damage = 1;
+        is_alive = 1;
+        direction = UP;
+        break;
+
+    case TANK_ENEMY_1:
+        tank_health = 1;
+        tank_speed = 0.8f;
+        tank_bullet_speed = 1.f;
+        tank_reload_time = 1.2f;
+        tank_bullet_power = 1;
+        tank_damage = 1;
+        is_alive = 0;
+        direction = DOWN;
+        break;
+
+    default:
+        break;
+    }
 }
 
 int Tank::get_tank_type()
@@ -25,11 +68,11 @@ void Tank::set_tank_health(int n)
     tank_health = n;
     return;
 }
-int Tank::get_tank_speed()
+float Tank::get_tank_speed()
 {
     return tank_speed;
 }
-void Tank::set_tank_speed(int n)
+void Tank::set_tank_speed(float n)
 {
     tank_speed = n;
     return;
@@ -167,7 +210,12 @@ bool Tank::get_ready_to_shoot_par()
 
 void Tank::shoot(Sprites * my_sprites, int bullet_size)
 {
-    if(reload_clock.getElapsedTime() < sf::seconds(tank_reload_time))
+    if(reload_clock.getElapsedTime() < sf::seconds(tank_reload_time) && bullet_ptr_vect.size() > 0)
+    {
+        need_to_shoot = false;
+        return;
+    }
+    else if(reload_clock.getElapsedTime() < sf::seconds(tank_reload_time / 3) && bullet_ptr_vect.size() == 0 && (tank_type == TANK_GREEN || tank_type == TANK_YELLOW))
     {
         need_to_shoot = false;
         return;
@@ -179,7 +227,7 @@ void Tank::shoot(Sprites * my_sprites, int bullet_size)
     buf_bullet_ptr->set_bullet_speed(tank_bullet_speed);//выставили базовые характеристики пули, исходя из характеристик танка
     buf_bullet_ptr->set_bullet_damage(tank_damage);
     buf_bullet_ptr->set_bullet_power(tank_bullet_power);
-    
+    buf_bullet_ptr->set_bullet_owner_tank_type(tank_type);
     sf::Sprite * buf_sprite_ptr = my_sprites->get_new_sprite_ptr(BULLET);//добавили спрайт для пули
     
     //повернули спрайт в сторону движения пули
@@ -227,10 +275,6 @@ void Tank::shoot(Sprites * my_sprites, int bullet_size)
 
     
     buf_bullet_ptr->set_bullet_sprite_ptr(buf_sprite_ptr);
-
-    //sf::Vector2f bullet_coords = (*(--bullet_ptr_vect.end()))->get_bullet_sprite_ptr()->getPosition();
-    //std::cout << "printing coords of bullet that has been shot " << 
-    
     
     need_to_shoot = false;
     ready_to_shoot = false;
@@ -252,6 +296,20 @@ sf::Clock * Tank::get_reload_clock_ptr()
     return &reload_clock;
 }
 
+sf::Clock * Tank::get_decision_timer_ptr()
+{
+    return &decision_timer;
+}
+sf::Clock * Tank::get_forward_movement_timer_ptr()
+{
+    return &forward_movement_timer;
+}
+
+sf::Clock * Tank::get_stun_timer()
+{
+    return &stun_timer;
+}
+
 bool Tank::is_ready_to_shoot()
 {
     return ready_to_shoot;
@@ -267,6 +325,26 @@ void Tank::set_need_to_move_par(bool n)
 bool Tank::get_need_to_move_par()
 {
     return need_to_move;
+}
+
+bool Tank::get_is_alive_par()
+{
+    return is_alive;
+}
+void Tank::set_is_alive_par(bool n)
+{
+    is_alive = n;
+    return;
+}
+
+bool Tank::get_is_stunned_par()
+{
+    return is_stunned;
+}
+void Tank::set_is_stunned_par(bool n)
+{
+    is_stunned = n;
+    return;
 }
 /*зарождение будущей жизни
 void Tank::set_can_move_par(bool n)

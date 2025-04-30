@@ -1,5 +1,6 @@
 #include "GUI.h"
 #include "bullet.h"
+
 void GUI::prepare_tanks()
 {
 
@@ -40,13 +41,11 @@ void GUI::draw_bullets(sf::RenderWindow* my_window)
     for(auto t = current_tanks_list_ptr->begin(); t != current_tanks_list_ptr->end(); t++)
     {
         std::vector<Bullet*> * current_bullet_vect_ptr = (*t)->get_bullet_ptr_vect();
-        //std::cout << "rn this amuont of bullets is present: " << current_bullet_vect_ptr->size() << std::endl;
+        
         for(auto b = current_bullet_vect_ptr->begin(); b != current_bullet_vect_ptr->end(); b++)
         {
             my_window->draw(*(*b)->get_bullet_sprite_ptr());
             sf::Vector2f bullet_coords = (*b)->get_bullet_sprite_ptr()->getPosition();
-            //std::cout << "drew a bullet with following coords: " << bullet_coords.x << ' ' << bullet_coords.y << std::endl;
-            //std::cout << "rn this amuont of bullets is present: " << current_bullet_vect_ptr->size() << std::endl;
         }
     }
 }
@@ -63,16 +62,13 @@ void GUI::run()
     get_window_size_and_manage_sprites_sizes();
     my_sprites->stretch_all_textures();
     set_tanks_and_bullets_speeds();
-    std::vector<Tank *> * current_tank_vect_ptr = my_model->get_tanks_vect_ptr();
-
     sf::RenderWindow my_window(sf::VideoMode(screen_width, screen_height), "Game window");
     my_window.setFramerateLimit(FRAME_RATE);
     my_map->load_map_from_file("levels/level_1.txt");
     my_map->map_set_sprites(my_sprites);
-    first_player_controller->set_operating_tank_ptr((*current_tank_vect_ptr)[0]);
-    (*current_tank_vect_ptr)[0]->set_tank_sprite_ptr(my_sprites->get_new_sprite_ptr(TANK_GREEN));
-    (*current_tank_vect_ptr)[0]->get_tank_sprite_ptr()->setPosition((float)(my_model->get_tank_size() / 2) + 2, ((float)my_model->get_tank_size() / 2) + 2);
-    (*current_tank_vect_ptr)[0]->get_tank_sprite_ptr()->setOrigin((float)(my_model->get_tank_size() / 2), ((float)my_model->get_tank_size() / 2));
+    prepare_players_tanks();
+    prepare_bot_tanks();
+
     //render cycle
     while(my_window.isOpen())
     {
@@ -86,6 +82,7 @@ void GUI::run()
         my_window.clear();
         //printing map
         
+        //drawing everything except for bushes(grass)
         for(int x = 0; x < MAP_SIZE; x++)
         {
             for(int y = 0; y < MAP_SIZE; y++)
@@ -109,10 +106,6 @@ void GUI::run()
                     }
                 }
             }
-                
-
-            
-
         }
         
         //printing only nearest blocks and bullets
@@ -127,10 +120,10 @@ void GUI::run()
         }
             */
         //get keyboard input
-        first_player_controller->process_input();
+        all_controllers_process_input();
         //update model according to input
         my_model->update(my_map, my_sprites);
-        my_window.draw(*(*my_model->get_tanks_vect_ptr())[0]->get_tank_sprite_ptr());
+        draw_all_tanks(&my_window);
         //рисуем кусты последними, чтобы они были поверх остальных спрайтов
         for(int x = 0; x < MAP_SIZE; x++)
         {
@@ -155,6 +148,18 @@ void GUI::set_first_player_controller(Controller * c)
     return;
 }
 
+void GUI::set_second_player_controller(Controller * c)
+{
+    second_player_controller = c;
+    return;
+}
+
+void GUI::set_enemy_1_bot_controller(Controller * c)
+{
+    enemy_1_bot_controller = c;
+    return;
+}
+
 void GUI::drawDebugBounds(sf::RenderWindow& window, const sf::Sprite& sprite) 
 {
     sf::FloatRect bounds = sprite.getGlobalBounds();
@@ -164,4 +169,69 @@ void GUI::drawDebugBounds(sf::RenderWindow& window, const sf::Sprite& sprite)
     rect.setOutlineColor(sf::Color::Red);
     rect.setOutlineThickness(1);
     window.draw(rect);
+}
+
+    //first_player_controller->set_operating_tank_ptr((*my_model->get_tanks_vect_ptr())[0]);
+    //(*my_model->get_tanks_vect_ptr())[0]->set_tank_sprite_ptr(my_sprites->get_new_sprite_ptr(TANK_GREEN));
+    //(*my_model->get_tanks_vect_ptr())[0]->get_tank_sprite_ptr()->setPosition((float)(my_model->get_tank_size() / 2) + 2, ((float)my_model->get_tank_size() / 2) + 2);
+    //(*my_model->get_tanks_vect_ptr())[0]->get_tank_sprite_ptr()->setOrigin((float)(my_model->get_tank_size() / 2), ((float)my_model->get_tank_size() / 2));
+
+void GUI::prepare_bot_tanks()
+{
+    my_model->prepare_enemy_tanks(my_map->get_enemies_string());
+    for(auto t = my_model->get_tanks_vect_ptr()->begin(); t != my_model->get_tanks_vect_ptr()->end(); t++)
+    {
+        switch ((*t)->get_tank_type())
+        {
+        case TANK_ENEMY_1:
+            (*t)->set_tank_sprite_ptr(my_sprites->get_new_sprite_ptr(TANK_ENEMY_1));
+            (*t)->get_tank_sprite_ptr()->setOrigin((float)(my_model->get_tank_size() / 2), ((float)my_model->get_tank_size() / 2));
+            (*t)->get_tank_sprite_ptr()->setRotation(180.f);
+            break;
+        
+        default:
+            break;
+        }
+    }
+}
+
+void GUI::prepare_players_tanks()
+{
+    first_player_controller->set_operating_tank_ptr((*my_model->get_tanks_vect_ptr())[0]);
+    (*my_model->get_tanks_vect_ptr())[0]->set_tank_sprite_ptr(my_sprites->get_new_sprite_ptr(TANK_GREEN));
+    (*my_model->get_tanks_vect_ptr())[0]->get_tank_sprite_ptr()->setPosition((float)(9 * my_model->get_block_size()), (float)(25 * my_model->get_block_size()));
+    (*my_model->get_tanks_vect_ptr())[0]->get_tank_sprite_ptr()->setOrigin((float)(my_model->get_tank_size() / 2), ((float)my_model->get_tank_size() / 2));
+    if(my_model->get_number_of_players() == 2)
+    {
+        second_player_controller->set_operating_tank_ptr((*my_model->get_tanks_vect_ptr())[1]);
+        (*my_model->get_tanks_vect_ptr())[1]->set_tank_sprite_ptr(my_sprites->get_new_sprite_ptr(TANK_YELLOW));
+        (*my_model->get_tanks_vect_ptr())[1]->get_tank_sprite_ptr()->setPosition((float)(17 * my_model->get_block_size()), (float)(25 * my_model->get_block_size()));
+        (*my_model->get_tanks_vect_ptr())[1]->get_tank_sprite_ptr()->setOrigin((float)(my_model->get_tank_size() / 2), ((float)my_model->get_tank_size() / 2));
+    }
+}
+
+void GUI::all_controllers_process_input()
+{
+    first_player_controller->process_input(nullptr, nullptr);
+    if(my_model->get_number_of_players() == 2)
+        second_player_controller->process_input(nullptr, nullptr);
+    for(auto t = my_model->get_tanks_vect_ptr()->begin(); t != my_model->get_tanks_vect_ptr()->end(); t++)
+    {
+        if((*t)->get_tank_type() == TANK_ENEMY_1 && ((*t)->get_is_alive_par()))
+        {
+            enemy_1_bot_controller->set_operating_tank_ptr(*t);
+            enemy_1_bot_controller->process_input(my_model, my_map);
+        }
+    }
+}
+
+void GUI::draw_all_tanks(sf::RenderWindow * my_window)
+{
+    for(auto t = my_model->get_tanks_vect_ptr()->begin(); t != my_model->get_tanks_vect_ptr()->end(); t++)
+    {
+        if((*t) == nullptr)
+            std::cout << "bad ptr " << __LINE__ << std::endl;
+        if((*t)->get_is_alive_par())
+            my_window->draw(*((*t)->get_tank_sprite_ptr()));
+    }
 }

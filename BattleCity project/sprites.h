@@ -23,7 +23,8 @@ enum texture_codes
     TANK_ENEMY_2,
     TANK_ENEMY_3,
     TANK_ENEMY_4,
-    BULLET
+    BULLET,
+    DEFEATED
 };
 
 class Sprites

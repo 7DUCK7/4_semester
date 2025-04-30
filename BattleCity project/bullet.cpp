@@ -82,3 +82,14 @@ void Bullet::set_bullet_power(int n)
     bullet_power = n;
     return;
 }
+
+void Bullet::set_bullet_owner_tank_type(int n)
+{
+    owner_tank_type = n;
+    return;
+}
+
+int Bullet::get_bullet_owner_tank_type()
+{
+    return owner_tank_type;
+}
