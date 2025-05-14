@@ -21,6 +21,8 @@ int main(int argc, char* argv[])
     my_GUI.set_first_player_controller(Controller::get_controller('1'));
     my_GUI.set_second_player_controller(Controller::get_controller('2'));
     my_GUI.set_enemy_1_bot_controller(Controller::get_controller(1));
+    my_GUI.set_enemy_2_bot_controller(Controller::get_controller(2));
+    my_GUI.set_enemy_3_bot_controller(Controller::get_controller(3));
     my_GUI.run();
     return 0;
 }

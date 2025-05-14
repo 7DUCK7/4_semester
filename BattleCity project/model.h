@@ -12,7 +12,7 @@
 
 #define STUN_TIME 4
 #define EPSILON 0.05f
-#define ENEMIES_SPAWN_COOLDOWN 1.f
+#define ENEMIES_SPAWN_COOLDOWN 9.f
 #define NUMBER_OF_ENEMIES_SPAWNING_AT_ONCE 3
 enum directions
 {
@@ -47,6 +47,8 @@ class Model
     int number_of_players;
     sf::Clock enemies_spawn_cooldown;
     std::string enemies;
+    bool game_won = false;
+    bool game_lost = false;
     bool check_collision(sf::Sprite sprite1, sf::Sprite sprite2);
     void manage_walls_collsion_v2(Map * my_map, Sprites * my_sprites);
     void manage_borders_collision_v2();
@@ -86,7 +88,13 @@ class Model
     void prepare_enemy_tanks(std::string enemies_str);
     void spawn_enemies();
     sf::Vector2f get_spawn_position();
-
+    bool get_game_won_par();
+    void set_game_won_par(bool n);
+    bool get_game_lost_par();
+    void set_game_lost_par(bool n);
+    void check_if_players_are_alive();
+    void check_if_base_is_alive(Map * my_map);
+    void check_for_enemies();
 };
 
 

@@ -30,6 +30,8 @@ class Tank
     sf::Clock decision_timer;
     sf::Clock forward_movement_timer;
     sf::Clock stun_timer;
+    sf::Clock not_moving_timer;
+    sf::Vector2f previos_position = {0., 0.};
     public:
     Tank(int type);
     int get_tank_type();
@@ -62,6 +64,7 @@ class Tank
     sf::Clock * get_decision_timer_ptr(); 
     sf::Clock * get_forward_movement_timer_ptr();
     sf::Clock * get_stun_timer();
+    sf::Clock * get_not_moving_timer_ptr();
     bool is_ready_to_shoot();
     
     void set_need_to_move_par(bool n);
@@ -70,6 +73,7 @@ class Tank
     void set_is_alive_par(bool n);
     bool get_is_stunned_par();
     void set_is_stunned_par(bool n);
+    sf::Vector2f * get_previos_postion();
     /*зарождение будущей жизни
     void set_can_move_par(bool n);
     bool get_can_move_par();

@@ -5,10 +5,6 @@
 Tank::Tank(int type)
 {
     tank_type = type;
-    /*
-
-    movement_rights.push_back(0);
-    */
 
     switch (type)
     {
@@ -45,6 +41,27 @@ Tank::Tank(int type)
         direction = DOWN;
         break;
 
+    case TANK_ENEMY_2:
+        tank_health = 1;
+        tank_speed = 1.2f;
+        tank_bullet_speed = 1.f;
+        tank_reload_time = 1.2f;
+        tank_bullet_power = 1;
+        tank_damage = 1;
+        is_alive = 0;
+        direction = DOWN;
+        break;
+
+    case TANK_ENEMY_3:
+        tank_health = 1;
+        tank_speed = 0.8f;
+        tank_bullet_speed = 1.2f;
+        tank_reload_time = 1.f;
+        tank_bullet_power = 1;
+        tank_damage = 1;
+        is_alive = 0;
+        direction = DOWN;
+        break;
     default:
         break;
     }
@@ -139,6 +156,7 @@ void Tank::set_direction(int n)
 
 void Tank::move(int base_speed)
 {
+    previos_position = tank_sprite_ptr->getPosition();
     switch (direction)
     {
     case UP:
@@ -310,6 +328,11 @@ sf::Clock * Tank::get_stun_timer()
     return &stun_timer;
 }
 
+sf::Clock * Tank::get_not_moving_timer_ptr()
+{
+    return &not_moving_timer;
+}
+
 bool Tank::is_ready_to_shoot()
 {
     return ready_to_shoot;
@@ -345,6 +368,11 @@ void Tank::set_is_stunned_par(bool n)
 {
     is_stunned = n;
     return;
+}
+
+sf::Vector2f * Tank::get_previos_postion()
+{
+    return &previos_position;
 }
 /*зарождение будущей жизни
 void Tank::set_can_move_par(bool n)

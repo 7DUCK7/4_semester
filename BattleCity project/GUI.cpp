@@ -10,7 +10,7 @@ void GUI::get_window_size_and_manage_sprites_sizes()
 {
     sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     
-    screen_height = std::min(desktop.height, desktop.width);
+    screen_height = std::min(desktop.height - 50, desktop.width - 50);
     screen_height = screen_height / (MAP_SIZE * 2) * (MAP_SIZE * 2);
     screen_width = screen_height;
     if(screen_height <= 0 || screen_width <= 0)
@@ -64,6 +64,7 @@ void GUI::run()
     set_tanks_and_bullets_speeds();
     sf::RenderWindow my_window(sf::VideoMode(screen_width, screen_height), "Game window");
     my_window.setFramerateLimit(FRAME_RATE);
+    move_window(&my_window, sf::VideoMode::getDesktopMode().width);
     my_map->load_map_from_file("levels/level_1.txt");
     my_map->map_set_sprites(my_sprites);
     prepare_players_tanks();
@@ -72,6 +73,7 @@ void GUI::run()
     //render cycle
     while(my_window.isOpen())
     {
+        
         sf::Event event;
         while(my_window.pollEvent(event))
         {
@@ -110,6 +112,7 @@ void GUI::run()
         
         //printing only nearest blocks and bullets
         draw_bullets(&my_window);
+        
         /*
         std::vector<sf::Sprite *> nearby_collidble_sprites_ptr_vect;
         my_model->get_nearby_collideble_map_sprites(&nearby_collidble_sprites_ptr_vect, (*my_model->get_tanks_vect_ptr())[0]->get_tank_sprite_ptr(), my_map);
@@ -121,9 +124,12 @@ void GUI::run()
             */
         //get keyboard input
         all_controllers_process_input();
+        
         //update model according to input
         my_model->update(my_map, my_sprites);
+        
         draw_all_tanks(&my_window);
+        
         //рисуем кусты последними, чтобы они были поверх остальных спрайтов
         for(int x = 0; x < MAP_SIZE; x++)
         {
@@ -138,6 +144,18 @@ void GUI::run()
             }
         }
         //drawDebugBounds(my_window, *(*my_model->get_tanks_vect_ptr())[0]->get_tank_sprite_ptr());
+        if(my_model-> get_game_lost_par())
+        {
+            finish_lost_game(&my_window);
+            my_window.close();
+            break;
+        }
+        if(my_model-> get_game_won_par())
+        {
+            finish_won_game(&my_window);
+            my_window.close();
+            break;
+        }
         my_window.display();
     }
 }
@@ -160,6 +178,17 @@ void GUI::set_enemy_1_bot_controller(Controller * c)
     return;
 }
 
+void GUI::set_enemy_2_bot_controller(Controller * c)
+{
+    enemy_2_bot_controller = c;
+    return;
+}
+
+void GUI::set_enemy_3_bot_controller(Controller * c)
+{
+    enemy_3_bot_controller = c;
+    return;
+}
 void GUI::drawDebugBounds(sf::RenderWindow& window, const sf::Sprite& sprite) 
 {
     sf::FloatRect bounds = sprite.getGlobalBounds();
@@ -185,13 +214,18 @@ void GUI::prepare_bot_tanks()
         {
         case TANK_ENEMY_1:
             (*t)->set_tank_sprite_ptr(my_sprites->get_new_sprite_ptr(TANK_ENEMY_1));
-            (*t)->get_tank_sprite_ptr()->setOrigin((float)(my_model->get_tank_size() / 2), ((float)my_model->get_tank_size() / 2));
-            (*t)->get_tank_sprite_ptr()->setRotation(180.f);
             break;
-        
+        case TANK_ENEMY_2:
+            (*t)->set_tank_sprite_ptr(my_sprites->get_new_sprite_ptr(TANK_ENEMY_2));
+            break;
+        case TANK_ENEMY_3:
+            (*t)->set_tank_sprite_ptr(my_sprites->get_new_sprite_ptr(TANK_ENEMY_3));
+            break;
         default:
             break;
         }
+        (*t)->get_tank_sprite_ptr()->setOrigin((float)(my_model->get_tank_size() / 2), ((float)my_model->get_tank_size() / 2));
+        (*t)->get_tank_sprite_ptr()->setRotation(180.f);
     }
 }
 
@@ -222,6 +256,16 @@ void GUI::all_controllers_process_input()
             enemy_1_bot_controller->set_operating_tank_ptr(*t);
             enemy_1_bot_controller->process_input(my_model, my_map);
         }
+        else if((*t)->get_tank_type() == TANK_ENEMY_2 && ((*t)->get_is_alive_par()))
+        {
+            enemy_2_bot_controller->set_operating_tank_ptr(*t);
+            enemy_2_bot_controller->process_input(my_model, my_map);
+        }
+        else if((*t)->get_tank_type() == TANK_ENEMY_3 && ((*t)->get_is_alive_par()))
+        {
+            enemy_3_bot_controller->set_operating_tank_ptr(*t);
+            enemy_3_bot_controller->process_input(my_model, my_map);
+        }
     }
 }
 
@@ -234,4 +278,51 @@ void GUI::draw_all_tanks(sf::RenderWindow * my_window)
         if((*t)->get_is_alive_par())
             my_window->draw(*((*t)->get_tank_sprite_ptr()));
     }
+}
+
+void GUI::finish_lost_game(sf::RenderWindow * my_window)
+{
+    my_window->clear();
+    sf::Font font;
+    if(!font.loadFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))   //general Ubuntu path
+        std::cerr << __FILE__ << ": " << __func__ << "() line " <<  __LINE__  <<  ": couldn't load font" << std::endl;
+    sf::Text text;
+    text.setFont(font);
+    text.setString("GAME OVER");
+    text.setStyle(sf::Text::Bold);
+    text.setFillColor(sf::Color::Yellow);
+    text.setCharacterSize((int)(my_window->getSize().y / text.getGlobalBounds().height / 10) * 30);
+    //text.setScale(screen_width / text.getGlobalBounds().width / 5, screen_height / text.getGlobalBounds().height / 5);
+    text.setOrigin(text.getLocalBounds().width / 2, text.getLocalBounds().height / 2);
+    text.setPosition(screen_width / 2, screen_height / 2);
+    my_window->draw(text);
+    my_window->display();
+    sf::sleep(sf::seconds(5));
+    return;
+}
+
+void GUI::move_window(sf::RenderWindow * my_window, int desktop_width)
+{
+    my_window->setPosition(sf::Vector2i((desktop_width - screen_width) / 2, 0));
+}
+
+void GUI::finish_won_game(sf::RenderWindow * my_window)
+{
+    my_window->clear();
+    sf::Font font;
+    if(!font.loadFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))   //general Ubuntu path
+        std::cerr << __FILE__ << ": " << __func__ << "() line " <<  __LINE__  <<  ": couldn't load font" << std::endl;
+    sf::Text text;
+    text.setFont(font);
+    text.setString("You WON!");
+    text.setStyle(sf::Text::Bold);
+    text.setFillColor(sf::Color::Green);
+    text.setCharacterSize((int)(my_window->getSize().y / text.getGlobalBounds().height / 10) * 30);
+    //text.setScale(screen_width / text.getGlobalBounds().width / 5, screen_height / text.getGlobalBounds().height / 5);
+    text.setOrigin(text.getLocalBounds().width / 2, text.getLocalBounds().height / 2);
+    text.setPosition(screen_width / 2, screen_height / 2);
+    my_window->draw(text);
+    my_window->display();
+    sf::sleep(sf::seconds(5));
+    return;
 }

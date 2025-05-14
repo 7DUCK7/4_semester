@@ -39,10 +39,31 @@ class Second_Player_Controller:Controller
 class Enemy_1_Bot_Controller:Controller
 {
     private:
-    void get_environment(Model * my_model, Map * my_map, int* direction_massive);
+    void get_environment(Model * my_model, Map * my_map, int* direction_massive, int * bricks_direction_massive);
     void decide_where_to_go(Model * my_model, Map * my_map);
     public:
     Enemy_1_Bot_Controller();
+    virtual void process_input(Model * my_model, Map * my_map);
+};
+
+class Enemy_2_Bot_Controller:Controller
+{
+    private:
+    void get_environment(Model * my_model, Map * my_map, int* direction_massive, int * bricks_direction_massive, int * players_direction_massive);
+    void decide_where_to_go(Model * my_model, Map * my_map);
+    bool forsee_future_not_to_miss_player(Model * my_model, Map * my_map);
+    public:
+    Enemy_2_Bot_Controller();
+    virtual void process_input(Model * my_model, Map * my_map);
+};
+
+class Enemy_3_Bot_Controller:Controller
+{
+    private:
+    void get_environment(Model * my_model, Map * my_map, int* direction_massive, int * bricks_direction_massive, int * players_direction_massive);
+    void decide_where_to_go(Model * my_model, Map * my_map);
+    public:
+    Enemy_3_Bot_Controller();
     virtual void process_input(Model * my_model, Map * my_map);
 };
 

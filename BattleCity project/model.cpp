@@ -92,21 +92,28 @@ void Model::manage_walls_collsion_v2(Map * my_map, Sprites * my_sprites)
                             //уменьшаем здоровье блока, если сила пули позволяет наносить этому блоку урон
                             if((*b)->get_bullet_power() >= (*m)->get_block_density())
                             {
-                                if((*m)->get_block_health() > (*b)->get_bullet_damage())
+                                if((*m)->get_block_type() != 'e')
                                 {
-                                    (*m)->set_block_health((*m)->get_block_health() - (*b)->get_bullet_damage());
+                                    if((*m)->get_block_health() > (*b)->get_bullet_damage())
+                                    {
+                                        (*m)->set_block_health((*m)->get_block_health() - (*b)->get_bullet_damage());
+                                    }
+                                    else
+                                    {   //превращаем блок в воздух
+                                        (*m)->set_block_health(0);
+                                        (*m)->block_set_collidable_par(0);
+                                        (*m)->set_block_density(0);
+                                        (*m)->set_block_type(' ');
+                                        //!!!!сохраняя прежнюю позицию спрайта
+                                        sf::Vector2f old_position = (*m)->get_block_sprite_ptr()->getPosition();
+                                        delete (*m)->get_block_sprite_ptr();
+                                        (*m)->set_block_sprite_ptr(my_sprites->get_new_sprite_ptr(AIR));
+                                        (*m)->get_block_sprite_ptr()->setPosition(old_position.x, old_position.y);
+                                    }
                                 }
                                 else
-                                {   //превращаем блок в воздух
-                                    (*m)->set_block_health(0);
-                                    (*m)->block_set_collidable_par(0);
-                                    (*m)->set_block_density(0);
-                                    (*m)->set_block_type(' ');
-                                    //!!!!сохраняя прежнюю позицию спрайта
-                                    sf::Vector2f old_position = (*m)->get_block_sprite_ptr()->getPosition();
-                                    delete (*m)->get_block_sprite_ptr();
-                                    (*m)->set_block_sprite_ptr(my_sprites->get_new_sprite_ptr(AIR));
-                                    (*m)->get_block_sprite_ptr()->setPosition(old_position.x, old_position.y);
+                                {
+                                    game_lost = true;
                                 }
                             }
                             //ставим флаг на удаление пули 
@@ -330,6 +337,10 @@ void Model::manage_tank_bullet_collision()  //to - tank owner, b - bullet, t - t
             bool delete_bullet = false;
             for(auto t = tanks.begin(); t != tanks.end(); t++)
             {
+                if(t == to)
+                {
+                    continue;
+                }
                 if((*t)->get_is_alive_par())
                 {
                     if((*b)->get_bullet_sprite_ptr()->getGlobalBounds().intersects((*t)->get_tank_sprite_ptr()->getGlobalBounds()))
@@ -556,6 +567,8 @@ void Model::update(Map * my_map, Sprites * my_sprites)
     unstun_stunned_tanks();
     rotate_and_move_tanks();
     move_all_bullets();
+    check_if_players_are_alive();
+    check_for_enemies();
 }
 
 int Model::get_movement_right(int n)
@@ -705,6 +718,14 @@ void Model::prepare_enemy_tanks(std::string enemies_str)
             add_tank_to_vect(new Tank(TANK_ENEMY_1));   
             movement_rights.push_back(1);
             break;
+        case '2':
+            add_tank_to_vect(new Tank(TANK_ENEMY_2));   
+            movement_rights.push_back(1);
+            break;
+        case '3':
+            add_tank_to_vect(new Tank(TANK_ENEMY_3));   
+            movement_rights.push_back(1);
+            break;
         default:
             break;
         }
@@ -723,8 +744,8 @@ void Model::spawn_enemies()
     {
         if((*t)->get_tank_type() != TANK_GREEN && (*t)->get_tank_type() != TANK_YELLOW && (*t)->get_tank_type() != DEFEATED && !(*t)->get_is_alive_par())
         {
-            (*t)->set_is_alive_par(true);
             (*t)->get_tank_sprite_ptr()->setPosition(get_spawn_position());
+            (*t)->set_is_alive_par(true);
             counter++;
         }
     }
@@ -732,15 +753,112 @@ void Model::spawn_enemies()
 
 sf::Vector2f Model::get_spawn_position()
 {
-    sf::Vector2f buf_vector_2f = {(float)block_size, (float)block_size};
-    int chance = rand() % 3;
-    if(chance == 0) 
+    sf::Vector2f buf_vector_2f_array[3] = {{(MAP_SIZE / 2.f) * block_size, (float)block_size}, {(MAP_SIZE - 1.f) * block_size, (float)block_size}, {(float)block_size, (float)block_size}};
+    bool is_spawn_not_free[3] = {false, false, false};
+
+    for(int i = 0; i < 3; i++)
     {
-        buf_vector_2f.x = (MAP_SIZE / 2) * block_size;
+
+        for(auto t = tanks.begin(); t != tanks.end(); t++)
+        {
+            if(!(*t)->get_is_alive_par())
+            {
+                continue;
+            }
+            if( (buf_vector_2f_array[i].x - (*t)->get_tank_sprite_ptr()->getPosition().x) * (buf_vector_2f_array[i].x - (*t)->get_tank_sprite_ptr()->getPosition().x) +
+                (buf_vector_2f_array[i].y - (*t)->get_tank_sprite_ptr()->getPosition().y) *(buf_vector_2f_array[i].y - (*t)->get_tank_sprite_ptr()->getPosition().y) < 2 * block_size * block_size)
+            {
+                is_spawn_not_free[i] = true;
+            }
+        }
     }
-    else if(chance == 1)
+    for(int i = 0; i < 3; i++)
     {
-        buf_vector_2f.x = (MAP_SIZE - 1) * block_size;
+        if(!is_spawn_not_free[i])
+        {
+            return buf_vector_2f_array[i];
+        }
     }
-    return buf_vector_2f;
+    return buf_vector_2f_array[0];
+}
+
+bool Model::get_game_won_par()
+{
+    return game_won;
+}
+
+void Model::set_game_won_par(bool n)
+{
+    game_won = n;
+    return;
+}
+
+bool Model::get_game_lost_par()
+{
+    return game_lost;
+}
+
+void Model::set_game_lost_par(bool n)
+{
+    game_lost = n;
+    return;
+}
+
+void Model::check_if_players_are_alive()
+{
+    int num_of_players_alive = 0;
+    for(auto t = tanks.begin(); t != tanks.end(); t++)
+    {
+        if((*t)->get_tank_type() == TANK_YELLOW || (*t)->get_tank_type() == TANK_GREEN)
+        {
+            if((*t)->get_is_alive_par())
+            {
+                num_of_players_alive++;
+            }
+        }   
+    }
+
+    if(num_of_players_alive == 0)
+    {
+        set_game_lost_par(true);
+    }
+}
+
+void Model::check_if_base_is_alive(Map * my_map)
+{
+    for(int i = 0; i < MAP_SIZE; i++)
+    {
+        for(int j = 0; j < MAP_SIZE; j++)
+        {
+            if(my_map->get_block_ptr(i, j)->get_block_type() == 'e' && my_map->get_block_ptr(i, j)->get_block_health() <= 0)
+            {
+                game_lost = true;
+                return;
+            }
+        }
+    }
+}
+
+void Model::check_for_enemies()
+{
+    int number_of_all_tanks = 0;
+    int number_of_players = 0;
+    int number_of_defeated_tanks = 0;
+    for(auto t = tanks.begin(); t != tanks.end(); t++)
+    {
+        if((*t)->get_tank_type() == TANK_GREEN || (*t)->get_tank_type() == TANK_YELLOW)
+        {
+            number_of_players++;
+        }
+        number_of_all_tanks++;
+        if((*t)->get_tank_type() == DEFEATED)
+        {
+            number_of_defeated_tanks++;
+        }
+    }
+    if((number_of_all_tanks - number_of_defeated_tanks) == number_of_players)
+    {
+        set_game_won_par(true);
+    }
+    return;
 }

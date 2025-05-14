@@ -51,7 +51,9 @@ bool Map::load_map_from_file(char * file_name)
     while((buf_int = fgetc(input_fd)) != EOF)
     {
         if(numbers.find(buf_int) != std::string::npos)
+        {
             enemies_str.push_back(buf_int);
+        }
     }
 
     /*  Вывод текстовой карты
